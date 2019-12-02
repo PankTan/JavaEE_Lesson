@@ -9,6 +9,7 @@ public class Account implements Serializable {
 
     private User user;
 
+
     public User getUser() {
         return user;
     }
