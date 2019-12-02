@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dgut.dao.IUserDao">
+
+    <cache/>
+    
+    <resultMap id="userMap" type="user">
+        <id property="user_id" column="user_id"></id>
+        <result property="user_name" column="user_name"></result>
+        <result property="user_password" column="user_password"></result>
+    </resultMap>
+
+    <select id="findAllUser" resultMap="userMap">
+    select * from user
+  </select>
+
+    <select id="findOneUser" resultType="com.dgut.entity.User">
+        select * from user where user_id = #{user_id}
+    </select>
+
+    <select id="addOneUser">
+        insert into user values (${user_id},#{user_name},#{user_password})
+    </select>
+
+    <delete id="deleteOneUser">
+        delete from user where user_id = #{user_id}
+    </delete>
+
+    <update id="updateOneUser">
+        update user set user_name = #{user_name},user_password = #{user_password} where user_id = #{user_id}
+    </update>
+
+    <select id="findByCondition" resultMap="userMap">
+        select * from USER where user_name = #{user_name}
+    </select>
+
+    <select id="findByOneFuzzy" resultMap="userMap">
+        select * from user where user_name like #{user_name}
+    </select>
+
+    <select id="findByTwoFuzzy" resultMap="userMap">
+        select * from user where user_name like  #{arg0} and user_id = #{arg1}
+    </select>
+
+    <select id="findByIds" resultType="com.dgut.entity.User">
+        select  * from USER
+        <where>
+            <if test="ids!=null and ids.size()>0">
+            and
+                <foreach collection="ids" item="id" open=" user_id in (" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <resultMap id="accountToUser" type="account">
+        <id column="account_id" property="account_id"></id>
+        <result property="money" column="money"></result>
+        <result property="uid" column="uid"></result>
+        <association property="user">
+            <id column="user_id" property="user_id"></id>
+            <result property="user_name" column="user_name"></result>
+            <result column="user_password" property="user_password"></result>
+        </association>
+    </resultMap>
+
+    <select id="findAccountUser" resultMap="accountToUser">
+        select * from account , user where user_id = uid
+    </select>
+
+    <resultMap id="userToAccounts" type="user">
+        <id column="user_id" property="user_id"></id>
+        <result property="user_name" column="user_name"></result>
+        <result column="user_password" property="user_password"></result>
+        <collection property="accounts" ofType="account">
+            <id property="account_id" column="account_id"></id>
+            <result property="money" column="money"></result>
+            <result column="uid" property="uid"></result>
+        </collection>
+    </resultMap>
+
+    <select id="findUserAccounts" resultMap="userToAccounts">
+                select * from account , user where user_id = uid
+    </select>
+
+    <resultMap id="user_role_Map" type="user">
+        <id column="user_id" property="user_id"></id>
+        <result column="user_name" property="user_name"/>
+        <result column="user_password" property="user_password"/>
+        <collection property="roles" ofType="role">
+            <result column="role_name" property="roleName"/>
+            <result column="role_desc" property="roleDesc"/>
+        </collection>
+    </resultMap>
+
+    <select id="findUsersWithRoles"  resultMap="user_role_Map">
+         select * FROM user right JOIN role_user ON `user`.user_id = role_user.user_id LEFT JOIN role on role_user.role_id = role.role_id
+    </select>
+
+    <resultMap id="accountLazyUser" type="account">
+        <id column="account_id" property="account_id"></id>
+        <result property="money" column="money"></result>
+        <result column="uid" property="uid"></result>
+        <association property="user" select="com.dgut.dao.IUserDao.findById" column="uid">
+
+        </association>
+    </resultMap>
+
+    <select id="findLazyUser" resultMap="accountLazyUser">
+        select  * from account
+    </select>
+
+    <select id="findById" resultType="user" parameterType="int">
+        select * from user where user_id = #{uid}
+    </select>
+
+    <resultMap id="findLazyAccount" type="user">
+        <id column="user_id" property="user_id"></id>
+        <result property="user_name" column="user_name"></result>
+        <result column="user_password" property="user_password"></result>
+        <collection property="accounts" select="com.dgut.dao.IUserDao.findByUserId" column="user_id">
+            <id column="account_id" property="account_id"></id>
+            <result property="money" column="money"></result>
+            <result column="uid" property="uid"></result>
+        </collection>
+    </resultMap>
+
+    <select id="findLazyAccount" resultMap="findLazyAccount">
+        select * from user
+    </select>
+
+    <select id="findByUserId" resultType="account" parameterType="int">
+        select * from account where uid = #{user_id}
+    </select>
+</mapper>
